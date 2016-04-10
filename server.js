@@ -23,12 +23,6 @@ app.get('/todos/:id', function (req, res) {
 	var todoId = parseInt(req.params.id, 10);
 	var matchedTodo = _.findWhere(todos, {id: todoId});
 
-	// todos.forEach(function (todo) {
-	// 	if (todo.id === todoId) {
-	// 		matchedTodo = todo;
-	// 	}
-	// });
-
 	if (matchedTodo) {
 		res.json(matchedTodo);
 	} else {
@@ -50,6 +44,19 @@ app.post('/todos', function (req, res) {
 
 	res.json(todo);
 });
+
+// DELETE /todoes/:id
+app.delete('/todos/:id', function (req, res) {
+	var todoId = parseInt(req.params.id, 10);
+	var matchedTodo = _.findWhere(todos, {id: todoId});
+
+	if (!matchedTodo) {
+		return res.status(404).send();	
+	}
+
+	todos = _.without(todos, matchedTodo);
+	res.json(matchedTodo);	
+})
 
 app.listen(PORT, function () {
 	console.log('Express listening on port ' + PORT + '!');
