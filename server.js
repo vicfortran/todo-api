@@ -15,8 +15,16 @@ app.get('/', function (req, res) {
 
 //GET /todos
 app.get('/todos', function (req, res) {
-	var queryParams = _.pick(req.query, 'description', 'completed');
+	var queryParams = _.pick(req.query, 'q', 'completed');
 	var filteredTodos = todos;
+
+	
+	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+		filteredTodos = _.filter(filteredTodos, function (todo) {
+			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+		});
+		delete queryParams.q;
+	}
 
 	if (queryParams.hasOwnProperty('completed') && queryParams.completed === "true") {
 		queryParams.completed = true;
