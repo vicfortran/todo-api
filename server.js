@@ -17,15 +17,6 @@ app.get('/', function (req, res) {
 //GET /todos
 app.get('/todos', function (req, res) {
 	var queryParams = _.pick(req.query, 'q', 'completed');
-	var filteredTodos = todos;
-
-	
-	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-		filteredTodos = _.filter(filteredTodos, function (todo) {
-			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-		});
-		delete queryParams.q;
-	}
 
 	if (queryParams.hasOwnProperty('completed') && queryParams.completed === "true") {
 		queryParams.completed = true;
@@ -33,21 +24,55 @@ app.get('/todos', function (req, res) {
 		queryParams.completed = false;
 	}
 
-	filteredTodos = _.where(filteredTodos, queryParams);
-
-	res.json(filteredTodos);
+	db.todo.sync().then(function () {
+		if (queryParams.q && queryParams.completed) {
+			return db.todo.findAll({
+				where: {
+					description: {
+						$like: '%' +queryParams.q + '%'
+					},
+					completed: queryParams.completed
+				}
+			});
+		} else if (queryParams.q) {
+			return db.todo.findAll({
+				where: {
+					description: {
+						$like: '%' +queryParams.q + '%'
+					}
+				}
+			});
+		} else if (queryParams.completed) {
+			return db.todo.findAll({
+				where: {
+					completed: queryParams.completed
+				}
+			});			
+		} else {
+			return db.todo.findAll();	
+		}
+	}).then(function (todos) {
+		res.json(todos);
+	}).catch(function (e) {
+		res.status(404).json(e);
+	});
 });
 
-//GET /todoes/:id
+//GET /todos/:id
 app.get('/todos/:id', function (req, res) {
 	var todoId = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {id: todoId});
 
-	if (matchedTodo) {
-		res.json(matchedTodo);
-	} else {
-		res.status(404).send();
-	}
+	db.todo.sync().then(function () {
+		return db.todo.findOne({
+			where: {
+				id: todoId
+			}
+		});
+	}).then(function (todo) {
+		res.json(todo);
+	}).catch(function (e) {
+		res.status(404).json(e);
+	});
 });
 
 // POST /todos
@@ -60,7 +85,7 @@ app.post('/todos', function (req, res) {
 	}).then(function (todo) {
 		res.json(todo);
 	}).catch(function (e) {
-		res.status(400).json(e)
+		res.status(400).json(e);
 	});
 });
 
