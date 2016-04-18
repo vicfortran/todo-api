@@ -1,2 +1,3 @@
 node_modules/
 playgrounds/
+data/dev-todo-api.sqlite

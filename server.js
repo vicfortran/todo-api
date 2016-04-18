@@ -62,14 +62,14 @@ app.get('/todos', function (req, res) {
 app.get('/todos/:id', function (req, res) {
 	var todoId = parseInt(req.params.id, 10);
 
-	db.todo.findOne({
-		where: {
-			id: todoId
+	db.todo.findById(todoId).then(function (todo) {
+		if (!!todo) {
+			res.json(todo.toJSON());
+		} else {
+			res.status(404).send();
 		}
-	}).then(function (todo) {
-		res.json(todo);
 	}).catch(function (e) {
-		res.status(404).json(e);
+		res.status(500).send();
 	});
 });
 
