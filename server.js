@@ -24,7 +24,7 @@ app.get('/todos', function (req, res) {
 		queryParams.completed = false;
 	}
 
-	db.todo.sync().then(function () {
+	db.todo.then(function () {
 		if (queryParams.q && queryParams.completed) {
 			return db.todo.findAll({
 				where: {
@@ -62,12 +62,10 @@ app.get('/todos', function (req, res) {
 app.get('/todos/:id', function (req, res) {
 	var todoId = parseInt(req.params.id, 10);
 
-	db.todo.sync().then(function () {
-		return db.todo.findOne({
-			where: {
-				id: todoId
-			}
-		});
+	db.todo.findOne({
+		where: {
+			id: todoId
+		}
 	}).then(function (todo) {
 		res.json(todo);
 	}).catch(function (e) {
@@ -77,13 +75,10 @@ app.get('/todos/:id', function (req, res) {
 
 // POST /todos
 app.post('/todos', function (req, res) {
-	var todo = _.pick(req.body, 'description', 'completed');
+	var body = _.pick(req.body, 'description', 'completed');
 
-	db.todo.create({
-		description: todo.description.trim(),
-		completed: todo.completed
-	}).then(function (todo) {
-		res.json(todo);
+	db.todo.create(body).then(function (todo) {
+		res.json(todo.toJSON());
 	}).catch(function (e) {
 		res.status(400).json(e);
 	});
@@ -92,14 +87,16 @@ app.post('/todos', function (req, res) {
 // DELETE /todoes/:id
 app.delete('/todos/:id', function (req, res) {
 	var todoId = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {id: todoId});
 
-	if (!matchedTodo) {
-		return res.status(404).send();	
-	}
-
-	todos = _.without(todos, matchedTodo);
-	res.json(matchedTodo);	
+	db.todo.destroy({
+		where: {
+			id: todoId
+		}
+	}).then(function () {
+		res.json(matchedTodo);
+	}).catch(function (e) {
+		res.status(404).json(e);
+	});	
 });
 
 // PUT /todos/:id
