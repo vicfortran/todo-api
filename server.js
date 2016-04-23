@@ -72,11 +72,18 @@ app.delete('/todos/:id', function (req, res) {
 		where: {
 			id: todoId
 		}
-	}).then(function () {
-		res.json(matchedTodo);
-	}).catch(function (e) {
-		res.status(404).json(e);
-	});	
+	}).then(function (rowsDeleted) {
+		console.log(rowsDeleted);
+		if (rowsDeleted === 0) {
+			res.status(404).json({
+				error: 'No todos with id'
+			});
+		} else {
+			res.status(204).send();
+		}
+	}, function () {
+		res.status(500).send();
+	});
 });
 
 // PUT /todos/:id
